@@ -3,9 +3,6 @@ from lib import mid2aud, interpret
 from pydub.playback import play
 from pydub import AudioSegment
 
-wav_dir = "wav/"
-mid_dir = "mid/"
-
 
 def scale_Cmaj_mid():
     """Build the Cmaj Scale midi file with two tracks right and left hand"""
@@ -42,7 +39,7 @@ for i in range(5):
     rs = [0.2 for i in range(15)]
     vols = [100 for i in range(15)]
     mid = interpret(mid, beat_ints, rs, vols)
-    mid.save(mid_dir + n + ".mid")
-    out += mid2aud(n) + silence
+    mid.save("I" + n + ".mid")
+    out += mid2aud("I" + n) + silence
 
 play(out)

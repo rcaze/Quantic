@@ -5,9 +5,6 @@ from pydub import AudioSegment
 from pydub.playback import play
 from lib import tempo_r, volume, velocity_r, mid2aud
 
-wav_dir = "wav/"
-mid_dir = "mid/"
-
 
 def comp_lh1(track):
     """Generate the track for the left hand of comptine N°2"""
@@ -284,7 +281,7 @@ def comptineN2():
 
 silence = AudioSegment.silent(duration=1000)
 out = silence
-for i in range(25):
+for i in range(3):
     n = "comp2"
     mid = comptineN2()
     tp = rd.randint(450000, 550000)
@@ -297,9 +294,9 @@ for i in range(25):
     lh = rd.randint(40, 60)
     mid.tracks[0] = velocity_r(mid.tracks[0], lh, 0.1)
     mid.tracks[1] = velocity_r(mid.tracks[1], rh, 0.1)
-    mid.save(mid_dir + n + ".mid")
-    out += mid2aud(n) + silence
+    mid.save("I" + n + ".mid")
+    out += mid2aud("I" + n) + silence
 
 out = out + 15
-out.export(wav_dir + "Icomp2.wav")
+out.export("Icomp2.wav")
 play(out)

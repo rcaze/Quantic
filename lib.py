@@ -4,10 +4,6 @@ import midi2audio as m2a
 from pydub.playback import play
 from pydub import AudioSegment
 
-wav_dir = "wav/"
-mid_dir = "mid/"
-
-
 def tempo_r(mid, beats, rs):
     """Create a new track with randomly varying tempo"""
     bt = mid.ticks_per_beat
@@ -64,9 +60,9 @@ def volume(mid, vols):
 
 def mid2aud(n_mid):
     """Return an audio segment from a mid file and build a wav meanwhile"""
-    m2a.FluidSynth().midi_to_audio(mid_dir + n_mid + '.mid',
-                                   wav_dir + n_mid + '.wav')
-    seg = AudioSegment.from_file(wav_dir + n_mid + '.wav')
+    m2a.FluidSynth().midi_to_audio(n_mid + '.mid',
+                                    n_mid + '.wav')
+    seg = AudioSegment.from_file(n_mid + '.wav')
     return seg
 
 
@@ -82,9 +78,9 @@ def interpret(mid, beats, rs, vols, ts_vol=[]):
 
 def mid_play(mid, mid_name):
     """Play a mid file and eventually save it"""
-    mid.save(mid_dir + mid_name + ".mid")
+    mid.save(mid_name + ".mid")
     out = mid2aud(mid_name)
-    out.export(wav_dir + mid_name + ".wav")
+    out.export(mid_name + ".wav")
     play(out)
     return mid
 

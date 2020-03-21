@@ -2,11 +2,8 @@ from mido import Message, MidiFile, MidiTrack
 from lib import velocity_r, tempo_r, mid2aud
 # import numpy as np
 # import numpy.random as rd
-# from pydub import AudioSegment
+from pydub import AudioSegment
 from pydub.playback import play
-
-wav_dir = "wav/"
-mid_dir = "mid/"
 
 
 def add_notes(trk, notes, dur):
@@ -334,9 +331,10 @@ beats = [530000 for i in range(12*4)]
 beats += [490000 for i in range(8*4)]
 beats += [470000 for i in range(8*4)]
 beats += [450000 for i in range((148-28)*4)]
-bt = mid.ticks_per_beat
+out = AudioSegment.silent(duration=1000)
 for i in range(1, 4):
     mid = MidiFile()
+    bt = mid.ticks_per_beat
     trkr = MidiTrack()
     trkl = MidiTrack()
     trkr = struggle_r(trkr, bt)
@@ -347,8 +345,8 @@ for i in range(1, 4):
     mid.tracks.append(trkr)
     mid.tracks.append(trkl)
     mid = tempo_r(mid, beats, rs)
-    mid.save(mid_dir + n + ".mid")
-    out += mid2aud(n)
+    mid.save("I" + n + ".mid")
+    out += mid2aud("I" + n)
 
-out.export(wav_dir + "I" + n + ".wav")
+out.export("I" + n + ".wav")
 play(out)

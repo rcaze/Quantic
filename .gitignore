@@ -1,3 +1,7 @@
 image/
 wav/
 *~
+I*.mid
+*.wav
+__*
+
