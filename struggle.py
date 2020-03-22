@@ -1,56 +1,9 @@
-from mido import Message, MidiFile, MidiTrack
-from lib import velocity_r, tempo_r, mid2aud
+from mido import MidiFile, MidiTrack
+from lib import velocity_r, tempo_r, mid2aud, add_notes, add_couples
 # import numpy as np
 # import numpy.random as rd
 from pydub import AudioSegment
 from pydub.playback import play
-
-
-def add_notes(trk, notes, dur):
-    """Add notes to a track"""
-    for i, ns in enumerate(notes):
-        if type(ns) is not list:
-            return "notes must be a list of lists"
-
-        d = dur[i]
-        for n in ns:
-            if n == -1:
-                trk.append(Message("note_on", note=0, velocity=0, time=0))
-            else:
-                trk.append(Message("note_on", note=n, velocity=100, time=0))
-
-        if len(ns) >= 2:
-            for i, n in enumerate(ns):
-                if i > 0:
-                    trk.append(Message("note_off", note=n, velocity=64,
-                                       time=0))
-                else:
-                    trk.append(Message("note_off", note=n, velocity=64,
-                                       time=d))
-
-        else:
-            for n in ns:
-                if n == -1:
-                    trk.append(Message("note_off", note=0, velocity=0, time=d))
-                else:
-                    trk.append(Message("note_off", note=n, velocity=64,
-                                       time=d))
-    return trk
-
-
-def add_couples(trk, main_notes, notes, dur):
-    """ Add notes while another is played in the background"""
-    if type(main_notes) is not list:
-        return "main_notes must be a list"
-    for m_n in main_notes:
-        trk.append(Message("note_on", note=m_n, velocity=100, time=0))
-
-    trk = add_notes(trk, notes, dur)
-
-    for m_n in main_notes:
-        trk.append(Message("note_off", note=m_n, velocity=64, time=0))
-
-    return trk
 
 
 def first_partr(trk, bt):
@@ -325,7 +278,6 @@ def struggle_l(trk, bt):
     return trk
 
 
-
 n = "struggle"
 beats = [530000 for i in range(12*4)]
 beats += [490000 for i in range(8*4)]
@@ -341,7 +293,7 @@ for i in range(1, 4):
     trkl = struggle_l(trkl, bt)
     trkr = velocity_r(trkr, 100, 0.1)
     trkl = velocity_r(trkl, 80, 0.1)
-    rs = [0.08*i for j in range(148*4)] # Given my count there are 144 measures
+    rs = [0.08*i for j in range(148*4)]  # Given my count there are 144 meas
     mid.tracks.append(trkr)
     mid.tracks.append(trkl)
     mid = tempo_r(mid, beats, rs)
