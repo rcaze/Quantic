@@ -4,18 +4,18 @@ import midi2audio as m2a
 from pydub.playback import play
 from pydub import AudioSegment
 
-def pedal_r(mid, nbt, nmeas):
+def pedal_r(mid, nbt, nmeas, add=0):
     """Play the pedal every n beat starting with the pedal on"""
     bt = mid.ticks_per_beat
     trk = MidiTrack()
     trk.name = "Pedal"
     p_on = rd.randint(64, 127)
     p_off = rd.randint(64, 127)
-    trk.append(Message("control_change", control=64, value=p_on))
+    trk.append(Message("control_change", control=64, value=p_on, time=add))
     for i in range(nmeas):
         p_off = rd.randint(64, 127)
         trk.append(Message("control_change", control=64, value=p_off,
-                           time=bt*nbt))
+                           time=add + bt*nbt))
         p_on = rd.randint(64, 127)
         trk.append(Message("control_change", control=64, value=p_on))
     mid.tracks.append(trk)
