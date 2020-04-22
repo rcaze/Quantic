@@ -118,7 +118,7 @@ for rep in range(1,4):
     trkr = velocity_r(trkr, 100, 0.1)
     trkl = velocity_r(trkl, 50, 0.1)
     mid = volume(mid, vols)
-    mid = pedal_r(mid, 4, 16)
+    mid = pedal_r(mid, 2, 8)
     mid.tracks.append(trkr)
     mid.tracks.append(trkl)
     mid = tempo_r(mid, beats, rs)

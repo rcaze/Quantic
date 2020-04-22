@@ -98,10 +98,10 @@ trkr = MidiTrack()
 trkl = MidiTrack()
 trkr = pre7r(trkr, bt)
 trkl = pre7l(trkl, bt)
-beats = [1000000 for i in range(1+15*3)]
-out = AudioSegment.silent(duration=1000)
+beats = [1000000 for i in range(1+19*3)]
+out = AudioSegment.silent(duration=3000)
 for rep in range(1, 4):
-    rs = [0.08*rep for j in range(1+15*3)] # Given my count there are 144 measures
+    rs = [0.08*rep for j in range(1+19*3)] # Given my count there are 144 measures
     trkr = velocity_r(trkr, 90, 0.1)
     trkl = velocity_r(trkl, 50, 0.1)
     mid.tracks.append(trkr)
