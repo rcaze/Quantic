@@ -13,7 +13,7 @@ cc = int(c/2)
 t = int(b/3)
 w = int(2*b)
 
-rhand1, rhand2, lhand1, lhand2, vell1, vell2, velr1, velr2 = [], [], [], [], [], [], [], []
+rhand1, rhand2, lhand1, lhand2 = [], [], [], []
 beats = [700000 for i in range(2*32-1)] + [350000 for i in range(3*(3*32)+1)]
 rs = [0.08 for i in range(2*32)] + [0.08 for i in range(3*(3*32))]
 beats += [700000 for i in range(2*6)] + [800000, 900000]
@@ -31,14 +31,6 @@ rhand1 += [('d5 d6', w+b+c+cc), ('c5 c6', cc), ('b4 b5', w+b), ('a4 a5', b),
 rhand1 +=[('c5 c6', w+b+c+cc), ('b4 b5', cc), ('e4 e5', 2*w), ('c5 c6', w+t),
          ('d5', t), ('c5',t), ('b4',t), ('c5',t), ('b4', t), ('e4 e5', w+w)]
 rhand2 = [('s', 32*w)]
-
-vr1 = [[64, 5*w+t]]
-vr1 += [[64, t], [67, t], [69, t], [70, t], [72, t], [70, w], [68, w]]
-velr = 2*vr1
-vr2 = [[int(i), w] for i in np.linspace(64, 74, 5)]
-vr2 += [[74, t], [75, t], [77, t], [79, t], [80, t], [82, t], [85, w], [75, w]]
-velr += vr2
-velr += vr1
 
 lhand1 = [('d3', w), ('f3 a3 d4', w), ('a2', w), ('c3 e3 b3', w)] * 2
 lhand1 += [('f3', w), ('a3 c4', w), ('c3', w), ('e3 g3 b3', w)] * 2
@@ -66,6 +58,7 @@ rhand2 += 2 * [('s', c), ('e4', c), ('f4', c), ('e4', c), ('f4', c), ('e4', c),
 lhand1 += 2 * ([('f3', w+b)] * 2 + [('c2', w+b)] * 2)
 lhand2 += 2 * ([('s', b), ('a3 c4', b), ('a3 c4', b)] * 2 + [('s', b), ('e3 g3', b), ('e3 g3', b)] * 2)
 
+
 rhand1 += 2 * [('d5', w+b), ('e5', b+c), ('c5', b+c), ('b4', w+b), ('a4', w+b)]
 rhand2 += 2 * [('s', c), ('e4', c), ('f4', c), ('e4', c), ('f4', c), ('e4', c),
                ('s', c), ('e4', c), ('f4', c),
@@ -84,13 +77,8 @@ rhand2 += 2 * [('s', c), ('e4', c), ('f4', c), ('e4', c), ('f4', c), ('e4', c),
               ('s', c), ('d4', c), ('e4', c), ('d4', c), ('e4', c), ('d4', c),
               ('e4', c), ('d4', c), ('c4', c), ('e4', c), ('d4', c), ('c4', c)]
 
-
 lhand1 += 2 * ([('f3', w+b)] * 2 + [('c2', w+b)] * 2)
 lhand2 += 2 * ([('s', b), ('a3 c4', b), ('a3 c4', b)] * 2 + [('s', b), ('e3 g3', b), ('e3 g3', b)] * 2)
-
-velr += 4*[[60, 2*(w+b)], [65, 2*b],  [70, b], [65, 2*b],  [60, b]]
-velr += 4*[[78, 2*(w+b)], [80, 2*b],  [84, b], [80, 2*b],  [60, b]]
-vell = [[i[0]-40, i[1]] for i in velr]
 
 # Third part
 rhand1 += [('d5', w+b+c), ('e5', c), ('f5', c), ('e5', c), ('f5', c), ('e5', c),
@@ -121,17 +109,6 @@ lpart3 += 2 * [('f2', c), ('c3', c), ('f3', c), ('g3', c), ('a3', c), ('c4', c),
 
 lhand1 += 2*lpart3
 lhand2 += [['s', 32*(w+b)]]
-
-velr += [[100, w+b], [100, b], [105, b], [110, b], [115, 2*(w+b)],
-         [115, 4*(w+b)],
-         [100, w+b], [100, b], [105, b], [108, b], [110, 2*(w+b)],
-         [110, 4*(w+b)],
-         [100, w+b], [100, b], [105, b], [108, b], [110, 2*(w+b)],
-         [110, 3*(w+b)], [108, w+b],
-         [108, 4*(w+b)],
-         [108, 3*(w+b)], [108, w+b]]
-
-vell += [[50, 32*(w+b)]]
 
 # Fourth part
 rhand1 += 2 * [('d5', w+b), ('d5', b+c), ('c5', b+c), ('b4', w+b), ('a4', w+b)]
@@ -172,18 +149,12 @@ lc2 = 2*lc2
 lc = 2*(lc1 + lc2)
 lhand1 += [(i, c) for i in lc]
 
-
-velr += 8*[[60, 2*(w+b)], [65, 2*b],  [70, b], [65, 2*b],  [60, b]]
-vell += 8*[[30, 2*(w+b)], [35, 2*b],  [40, b], [35, 2*b],  [30, b]]
-
 #Fifth Part
 rhand1 += [('d5', w+b+c+cc), ('c5', cc), ('b4', w+b), ('a4', b), ('d5', w+t),
          ('e5', t), ('d5', t), ('c5', t), ('b4', t), ('c5', t), ('b4', w+b),
          ('a4',b)]
-velr += [[50, 5*w+t], [50, t], [45, t], [40 ,3*t], [40, w+b], [30, b]]
 
 lhand1 += [('d3', w), ('f3 a3 d4', w), ('a2', w), ('c3 e3 b3', w)] * 2
-vell1 += [[20, 8*w]]
 
 trkr1 = lib.notes2trk(MidiTrack(), rhand1)
 trkr2 = lib.notes2trk(MidiTrack(), rhand2)
@@ -194,14 +165,6 @@ vol += [65 for i in range(32*3)]
 vol += [90 for i in range(32*3+1)]
 vol += [65 for i in range(32*3-1)]
 vol += [50 for i in range(8*2+1)]
-
-"""
-vel_r doestn't work weel FUCK
-trkr1 = lib.vel_r(trkr1, velr, 0.1)
-trkr2 = lib.vel_r(trkr2, velr, 0.1)
-trkl1 = lib.vel_r(trkl1, vell, 0.1)
-trkl2 = lib.vel_r(trkl2, vell, 0.1)
-"""
 
 n = "valse_amelie"
 mid = MidiFile()

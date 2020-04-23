@@ -26,15 +26,14 @@ def char2note(char):
 
 def notes2trk(trk, notes):
     """Add notes to a track the notes have a particular syntax. for instance
-    [('c4 e4 g4', 3*430), [('c4', 430), ('s', 430), ('g4', 430)]] """
+    [('c4 e4 g4', 3*430, 90), [('c4', 430), ('s', 430), ('g4', 430)]] """
 
     print(sum([i[1] for i in notes]))
 
     for i, note in enumerate(notes):
-        if note == 's':  # Message for a silence
+        if note[0] == 's':  # Message for a silence
             trk.append(Message("note_on", note=0, velocity=0, time=0))
             trk.append(Message("note_off", note=0, velocity=0, time=note[1]))
-            time += note[1]
             continue
 
         nlist = note[0].split(' ')
@@ -52,32 +51,6 @@ def notes2trk(trk, notes):
 
     return trk
 
-
-def vel_r(track, t_vels, r):
-    """Randomly change the velocity of a note in a track"""
-    time = 0
-    i = 0
-    c_tvel = t_vels[i]
-    #print(sum([i[1] for i in t_vels]))
-    for msg in track:
-        if msg.type=='note_off':
-            time += msg.time
-
-        if msg.type == 'note_on':
-            if msg.note != 0:  # To avoid messing with certain mid
-                if time < t_vels[i][1]:
-                    t_vel = c_tvel[0]
-                    r_mod = t_vel*r
-                    msg.velocity = rd.randint(max(t_vel - r_mod, 0),
-                                              min(t_vel + r_mod, 127))
-        if time+1 > c_tvel[1]:
-            i += 1
-            if i < len(t_vels):
-                c_tvel = t_vels[i]
-            time = 0
-
-
-    return track
 
 
 def pedal_r(mid, nbt, nmeas, add=0):
@@ -122,66 +95,6 @@ def tempo_r(mid, beats, rs):
     mid.tracks.append(trk)
     return mid
 
-
-def add_notes(trk, notes, dur):
-    """DEPRECATED Add notes to a track"""
-    for i, ns in enumerate(notes):
-        if type(ns) is not list:
-            return "notes must be a list of lists"
-
-        d = dur[i]
-        for n in ns:
-            if n == -1:
-                trk.append(Message("note_on", note=0, velocity=0, time=0))
-            else:
-                trk.append(Message("note_on", note=n, velocity=100, time=0))
-
-        if len(ns) >= 2:
-            for i, n in enumerate(ns):
-                if i > 0:
-                    trk.append(Message("note_off", note=n, velocity=64,
-                                       time=0))
-                else:
-                    trk.append(Message("note_off", note=n, velocity=64,
-                                       time=d))
-
-        else:
-            for n in ns:
-                if n == -1:
-                    trk.append(Message("note_off", note=0, velocity=0, time=d))
-                else:
-                    trk.append(Message("note_off", note=n, velocity=64,
-                                       time=d))
-    return trk
-
-
-def add_couples(trk, main_notes, notes, dur):
-    """DEPRECATED Add notes while another is played in the background"""
-    if type(main_notes) is not list:
-        return "main_notes must be a list"
-    for m_n in main_notes:
-        trk.append(Message("note_on", note=m_n, velocity=100, time=0))
-
-    trk = add_notes(trk, notes, dur)
-
-    for m_n in main_notes:
-        trk.append(Message("note_off", note=m_n, velocity=64, time=0))
-
-    return trk
-
-
-def vel(track, t_vel, r):
-    """DEPRECATED Randomly change the velocity of a note in a track"""
-    time = 0
-    for msg in track:
-        if msg.type == 'note_on' or msg.type=='note_off':
-            time += msg.time
-        if msg.type == 'note_on':
-            if msg.velocity != 0:  # To avoid messing with certain mid
-                r_mod = t_vel*r
-                msg.velocity = rd.randint(max(t_vel - r_mod, 0),
-                                          min(t_vel + r_mod, 127))
-    return track
 
 
 def volume(mid, vols):
