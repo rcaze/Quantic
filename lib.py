@@ -24,10 +24,11 @@ def char2note(char):
     return note_nb, v_on, v_off
 
 
-def notes2trk(trk, notes):
-    """Add notes to a track the notes have a particular syntax. for instance
+def notes2trk(notes):
+    """Create a track from notes with a particular syntax. for instance
     [('c4 e4 g4', 3*430, 90), [('c4', 430), ('s', 430), ('g4', 430)]] """
 
+    trk = MidiTrack()
     print(sum([i[1] for i in notes]))
 
     for i, note in enumerate(notes):
@@ -51,6 +52,22 @@ def notes2trk(trk, notes):
 
     return trk
 
+
+
+
+
+def velocity_r(track, t_vel, r):
+    """DEPRECATED Randomly change the velocity of a note in a track"""
+    time = 0
+    for msg in track:
+        if msg.type == 'note_on' or msg.type=='note_off':
+            time += msg.time
+        if msg.type == 'note_on':
+            if msg.velocity != 0:  # To avoid messing with certain mid
+                r_mod = t_vel*r
+                msg.velocity = rd.randint(max(t_vel - r_mod, 0),
+                                          min(t_vel + r_mod, 127))
+    return track
 
 
 def pedal_r(mid, nbt, nmeas, add=0):
