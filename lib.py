@@ -10,7 +10,7 @@ def char2note(char):
     the note ('a', 'b' , etc..) then the number of the note, and finally
     it's accentuation ('-', '=', '+')."""
     if char == 's':  # Return a silence
-        return 1, 0, 0
+        return 0, 0, 0
     notes = {'a': 69, 'b': 71, 'c': 60, 'd': 62, 'e': 64, 'f': 65, 'g': 67}
     note_nb = notes[char[0]]
     note_nb += (int(char[1])-4) * 12
@@ -24,30 +24,14 @@ def char2note(char):
     return note_nb, v_on, v_off
 
 
-def notes2trk(trk, notes, bck_n=('s', 0)):
+def notes2trk(trk, notes):
     """Add notes to a track the notes have a particular syntax. for instance
     [('c4 e4 g4', 3*430), [('c4', 430), ('s', 430), ('g4', 430)]] """
 
-    bck_list = bck_n[0].split(' ')
-    for bck_c_n in bck_list:  # Add the note on message
-        if bck_c_n == 's':
-            trk.append(Message("note_on", note=0, velocity=0, time=0))
-            trk.append(Message("note_off", note=0, velocity=0, time=bck_n[1]))
-        else:
-            n_nb, v_on, v_off = char2note(bck_c_n)
-            trk.append(Message("note_on", note=n_nb, velocity=v_on, time=0))
+    print(sum([i[1] for i in notes]))
 
-    time = 0
     for i, note in enumerate(notes):
-        if i + 1 < len(notes):
-            if isinstance(notes[i+1], list):
-                trk = notes2trk(trk, notes[i+1], bck_n = notes[i])
-                continue
-
-        if isinstance(note, list):
-            continue
-
-        if note == 's':
+        if note == 's':  # Message for a silence
             trk.append(Message("note_on", note=0, velocity=0, time=0))
             trk.append(Message("note_off", note=0, velocity=0, time=note[1]))
             time += note[1]
@@ -59,40 +43,40 @@ def notes2trk(trk, notes, bck_n=('s', 0)):
             n_nb, v_on, v_off = char2note(c_n)
             trk.append(Message("note_on", note=n_nb, velocity=v_on, time=0))
 
-        time += note[1]
         trk.append(Message("note_off", note=n_nb, velocity=v_off,
                            time=note[1]))
         for c_n in nlist[:-1]:  # Add the note off message
             n_nb, v_on, v_off = char2note(c_n)
             trk.append(Message("note_off", note=n_nb, velocity=v_off,
                                time=0))
-        if time == bck_n[1]:
-            for bck_c_n in bck_list:
-                n_nb, v_on, v_off = char2note(bck_c_n)
-                trk.append(Message("note_off", note=n_nb, velocity=v_off,
-                                   time=0))
 
     return trk
-
 
 
 def vel_r(track, t_vels, r):
     """Randomly change the velocity of a note in a track"""
     time = 0
     i = 0
+    c_tvel = t_vels[i]
+    #print(sum([i[1] for i in t_vels]))
     for msg in track:
-        print(time)
-        if msg.type == 'note_on':
-            if msg.velocity != 0:  # To avoid messing with certain mid
-                if time >= t_vels[i][1]:
-                    i += 1
-                    time = 0
-                t_vel = t_vels[i][0]
-                r_mod = t_vel*r
-                msg.velocity = rd.randint(max(t_vel - r_mod, 0),
-                                          min(t_vel + r_mod, 127))
         if msg.type=='note_off':
             time += msg.time
+
+        if msg.type == 'note_on':
+            if msg.note != 0:  # To avoid messing with certain mid
+                if time < t_vels[i][1]:
+                    t_vel = c_tvel[0]
+                    r_mod = t_vel*r
+                    msg.velocity = rd.randint(max(t_vel - r_mod, 0),
+                                              min(t_vel + r_mod, 127))
+        if time+1 > c_tvel[1]:
+            i += 1
+            if i < len(t_vels):
+                c_tvel = t_vels[i]
+            time = 0
+
+
     return track
 
 
@@ -186,7 +170,7 @@ def add_couples(trk, main_notes, notes, dur):
     return trk
 
 
-def velocity_r(track, t_vel, r):
+def vel(track, t_vel, r):
     """DEPRECATED Randomly change the velocity of a note in a track"""
     time = 0
     for msg in track:
@@ -249,38 +233,18 @@ def mid_play(mid, mid_name):
 
 def compo_test():
     """Generate the midi file to test the different function"""
-    mid = MidiFile()
-    track = MidiTrack()
-    beat = mid.ticks_per_beat
-    for i in range(2):
-        track.append(Message('note_on', velocity=100, note=60))
-        track.append(Message('note_off', velocity=64, note=60, time=beat))
-        track.append(Message('note_on', velocity=100, note=60))
-        track.append(Message('note_on', velocity=0, note=60, time=beat))
-    mid.tracks.append(track)
-    return mid
-
-    mid = MidiFile()
-    track = MidiTrack()
-    beat = mid.ticks_per_beat
-    for i in range(2):
-        track.append(Message('note_on', velocity=100, note=60))
-        track.append(Message('note_off', velocity=64, note=60, time=beat))
-        track.append(Message('note_on', velocity=100, note=60))
-        track.append(Message('note_on', velocity=0, note=60, time=beat))
-    mid.tracks.append(track)
+    trk = MidiTrack()
+    b = mid.ticks_per_beat
+    t = int(b/3)
+    notes = [['c4', b], ['s', b], ['c4', t], ['e4', t], ['g4', t], ['c4', b]]
+    trk = notes2trk(trk, notes)
+    return trk
 
 
 if __name__ == "__main__":
-    mid = compo_test()
-    trk = MidiTrack()
-    beats_int = [500000, 500000]
-    rs = [0.1, 0.1]
-    ts_vol = [(0, 50)]
-    vols = [100, 100]
-    notes = [('c4 e4 g4', 3*430), [('c4', 860), [('s', 430), ('g4', 430)]],
-             ('c4', 430)]
-    trk =  notes2trk(trk, notes)
-    for msg in trk:
-        print(msg)
-    #mid_play(mid, "test")
+    mid = MidiFile()
+    trk = compo_test()
+    t_vel = [[60, 2*b], [30, 3*t], [1, b]]
+    trk = vel_r(trk, t_vel, 0.1)
+    mid.tracks.append(trk)
+    mid.print_tracks()
