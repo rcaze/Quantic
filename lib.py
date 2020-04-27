@@ -3,6 +3,34 @@ import numpy.random as rd
 import midi2audio as m2a
 from pydub.playback import play
 from pydub import AudioSegment
+import itertools
+
+def rand_ev(low, high, nstp, stp=3, seed=None, inc=True, dec=True):
+    """Generate the random size"""
+    if not seed:
+        seed = rd.randint(low, high)
+
+    rands = [seed]
+    for i in range(nstp-1):
+        if 0 == rd.randint(2):
+            if inc:
+                seed += stp
+            else:
+                seed += 0
+        else:
+            if dec:
+                seed -= stp
+            else:
+                seed += 0
+
+        if seed < low:
+            rands += [low]
+        elif seed > high:
+            rands += [high]
+        else:
+            rands += [seed]
+
+    return rands
 
 
 def char2note(char):
@@ -25,11 +53,9 @@ def char2note(char):
 
 
 def notes2trk(notes):
-    """Create a track from notes with a particular syntax. for instance
-    [('c4 e4 g4', 3*430, 90), [('c4', 430), ('s', 430), ('g4', 430)]] """
+    """Create a track from notes with a particular syntax. for instance     [('c4 e4 g4', 3*430, 90), [('c4', 430), ('s', 430), ('g4', 430)]] """
 
     trk = MidiTrack()
-    print(sum([i[1] for i in notes]))
 
     for i, note in enumerate(notes):
         if note[0] == 's':  # Message for a silence
@@ -41,14 +67,25 @@ def notes2trk(notes):
 
         for c_n in nlist:  # Add the note on message
             n_nb, v_on, v_off = char2note(c_n)
-            trk.append(Message("note_on", note=n_nb, velocity=v_on, time=0))
-
-        trk.append(Message("note_off", note=n_nb, velocity=v_off,
-                           time=note[1]))
+            if len(note)==2:
+                trk.append(Message("note_on", note=n_nb, velocity=v_on, time=0))
+            else:
+                trk.append(Message("note_on", note=n_nb, velocity=note[2],
+                                   time=0))
+        if len(note) == 4:
+            trk.append(Message("note_off", note=n_nb, velocity=v_off,
+                               time=note[1]))
+        else:
+            trk.append(Message("note_off", note=n_nb, velocity=v_off,
+                               time=note[1]))
         for c_n in nlist[:-1]:  # Add the note off message
             n_nb, v_on, v_off = char2note(c_n)
-            trk.append(Message("note_off", note=n_nb, velocity=v_off,
-                               time=0))
+            if len(note) == 4:  # For short note
+                trk.append(Message("note_off", note=n_nb, velocity=note[3],
+                                   time=0))
+            else:
+                trk.append(Message("note_off", note=n_nb, velocity=v_off,
+                                   time=0))
 
     return trk
 
@@ -56,8 +93,40 @@ def notes2trk(notes):
 
 
 
-def velocity_r(track, t_vel, r):
-    """DEPRECATED Randomly change the velocity of a note in a track"""
+
+
+
+def repeat_vel(vel, nb):
+    """Repeat a velocity to match track from the same hand"""
+    out = list(itertools.chain.from_iterable(itertools.repeat(x, nb) for x in vel))
+    return out
+
+
+def velocity(vel_init, nuance, notes,
+             offset=0, drift=2, cresc=False, decresc=False, acc=[]):
+    """Generate a drifting velocity within a given range"""
+    vel = [vel_init]
+    nuance = [max(0, nuance[0]-offset), nuance[1]]
+
+    for note in notes:
+        if note[1] == 0:
+            vel += rand_ev(nuance[0], nuance[1], note[0], stp=drift,
+                           seed=vel[-1])
+        elif note[1] == 1:
+            vel += rand_ev(nuance[0], nuance[1], note[0], stp=drift,
+                           seed=vel[-1], dec=False)
+        elif note[1] == -1:
+            vel += rand_ev(nuance[0], nuance[1], note[0], stp=drift,
+                           seed=vel[-1], inc=False)
+
+    for c_acc in acc:
+        vel[c_acc[0]] = c_acc[1]
+
+    return vel
+
+
+def vel(track, t_vel, r):
+    """Randomly change the velocity of a note in a track"""
     time = 0
     for msg in track:
         if msg.type == 'note_on' or msg.type=='note_off':
@@ -70,23 +139,63 @@ def velocity_r(track, t_vel, r):
     return track
 
 
-def pedal_r(mid, nbt, nmeas, add=0):
-    """Play the pedal every n beat starting with the pedal on"""
+def volume(mid, vols):
+    """Change the volume of a midi"""
     bt = mid.ticks_per_beat
     trk = MidiTrack()
-    trk.name = "Pedal"
+    trk.name = "Volume variation"
+    trk.append(Message("control_change",
+                       control=7,
+                       time=0,
+                       value=vols[0]))
+
+    for i, vol in enumerate(vols):
+        trk.append(Message("control_change",
+                           control=7,
+                           time=bt,
+                           value=vol))
+
+    mid.tracks.append(trk)
+    return mid
+
+
+
+
+def pedal(nbt, nmeas, trk=None, bt=480):
+    """Play the pedal every n beat starting with the pedal on nbt is the numbr
+    of beat per measure and meas is the number of measure"""
+    if not trk:
+        trk = MidiTrack()
+        trk.name = "Pedal"
     p_on = rd.randint(64, 127)
     p_off = rd.randint(64, 127)
-    trk.append(Message("control_change", control=64, value=p_on, time=add))
+    trk.append(Message("control_change", control=64, value=p_on, time=0))
     for i in range(nmeas):
         p_off = rd.randint(64, 127)
         trk.append(Message("control_change", control=64, value=p_off,
                            time=bt*nbt))
         p_on = rd.randint(64, 127)
         trk.append(Message("control_change", control=64, value=p_on))
-    mid.tracks.append(trk)
-    return mid
+    return trk
 
+
+
+
+def tempo(beats, trk=None, bt=480):
+    """Create a track setting a tempo at each new beat"""
+    if not trk:
+        trk = MidiTrack()
+        trk.name = "Tempo variation"
+    trk.append(MetaMessage("set_tempo",
+                           tempo=beats[0],
+                           time=0))
+
+    for i, beat in enumerate(beats):
+        trk.append(MetaMessage("set_tempo",
+                               time=bt,
+                               tempo=beat))
+
+    return trk
 
 
 
@@ -113,25 +222,6 @@ def tempo_r(mid, beats, rs):
     return mid
 
 
-
-def volume(mid, vols):
-    """Change the volume of a midi"""
-    bt = mid.ticks_per_beat
-    trk = MidiTrack()
-    trk.name = "Volume variation"
-    trk.append(Message("control_change",
-                       control=7,
-                       time=0,
-                       value=vols[0]))
-
-    for i, vol in enumerate(vols):
-        trk.append(Message("control_change",
-                           control=7,
-                           time=bt,
-                           value=vol))
-
-    mid.tracks.append(trk)
-    return mid
 
 
 def mid2aud(n_mid):

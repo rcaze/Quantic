@@ -156,15 +156,35 @@ rhand1 += [('d5', w+b+c+cc), ('c5', cc), ('b4', w+b), ('a4', b), ('d5', w+t),
 
 lhand1 += [('d3', w), ('f3 a3 d4', w), ('a2', w), ('c3 e3 b3', w)] * 2
 
-trkr1 = lib.notes2trk(MidiTrack(), rhand1)
-trkr2 = lib.notes2trk(MidiTrack(), rhand2)
-trkl1 = lib.notes2trk(MidiTrack(), lhand1)
-trkl2 = lib.notes2trk(MidiTrack(), lhand2)
-vol = [50 for i in range(32*2-1)]
-vol += [65 for i in range(32*3)]
-vol += [90 for i in range(32*3+1)]
-vol += [65 for i in range(32*3-1)]
-vol += [50 for i in range(8*2+1)]
+trkr1 = lib.notes2trk(rhand1)
+trkr2 = lib.notes2trk(rhand2)
+trkl1 = lib.notes2trk(lhand1)
+trkl2 = lib.notes2trk(lhand2)
+vol = [50 for i in range(5*2)] + [55, 60, 60, 60]
+vol += [50 for i in range(5*2)] + [55, 60, 55, 52, 50, 45]
+vol += [int(i) for i in np.linspace(45, 75, 10)] + [75, 77, 77, 75, 72]
+vol += [50 for i in range(5*2)] + [55, 60, 55, 52, 50, 45]
+
+vol += 2 * [63, 65, 65, 65, 67, 70, 70, 70, 70, 70, 67, 65]
+vol += 2 * [65, 65, 65, 65, 65, 65, 65, 67, 70, 70, 67, 65]
+vol += 2 * [70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 67, 65]
+vol += 2 * [70, 70, 70, 70, 70, 70, 70, 72, 75, 75, 72, 70]
+
+vol += [90, 90, 90, 92, 94, 96, 98, 100, 102, 102, 102, 102]
+vol += [102 for i in range(12)]
+vol += [90, 90, 90, 92, 94, 96, 98, 100, 102, 102, 102, 102]
+vol += [102 for i in range(9)] + [102, 96, 94]
+vol += [90 for i in range(12)]
+vol += [90, 90, 90, 92, 94, 96, 96, 96, 96, 96, 96, 96]
+vol += [90 for i in range(12)]
+vol += [90, 90, 90, 92, 94, 96, 96, 96, 96, 96, 93, 90]
+
+vol += 2 * [65, 65, 65, 65, 65, 65, 65, 67, 70, 70, 67, 65]
+vol += 2 * [65, 65, 65, 65, 65, 65, 65, 67, 70, 70, 67, 65]
+vol += 2 * [65, 65, 65, 65, 65, 65, 65, 67, 70, 70, 67, 65]
+vol += 2 * [60, 60, 60, 60, 60, 60, 62, 64, 65, 65, 64, 62]
+
+vol += [50 for i in range(10)] + [48, 45, 45, 45, 40, 40]
 
 n = "valse_amelie"
 mid = MidiFile()
@@ -174,12 +194,19 @@ trkr1 = lib.vel(trkr1, 100, 0.2)
 trkr2 = lib.vel(trkr2, 100, 0.2)
 trkl1 = lib.vel(trkl1, 50, 0.2)
 trkl2 = lib.vel(trkl2, 50, 0.2)
-mid = volume(mid, vol)
+mid = lib.volume(mid, vol)
 mid.tracks.append(trkr1)
 mid.tracks.append(trkr2)
 mid.tracks.append(trkl1)
 mid.tracks.append(trkl2)
 
+"""
+Sounds better without pedal
+trk_p = lib.pedal(2, 32)
+trk_p = lib.pedal(3, 64, trk_p)
+trk_p = lib.pedal(2, 8, trk_p)
+"""
+mid.tracks.append(trk_p)
 mid = lib.tempo_r(mid, beats, rs)
 mid.save("I" + n + ".mid")
 out = lib.mid2aud("I" + n) + 10
